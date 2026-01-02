@@ -11,7 +11,7 @@ const ClientProvidersDynamic = dynamic(
 export function Providers({ children }: { children: React.ReactNode }) {
   // FIX: Use this known working Mainnet address.
   // The error '_bn' happens if this address is invalid or uninitialized.
-  const CREATOR_ADDRESS = "DRDspmzu5F7SJN5rjJEwqdDi7cRcvYUXxf8BgqvqtxG6";
+  const CREATOR_ADDRESS = "7n5cfeJWHBEJD9rJHidxA15qqhSt78RQ9w7czmZ8RYYd";
 
   return (
     <ClientProvidersDynamic creator={CREATOR_ADDRESS}>

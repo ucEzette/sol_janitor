@@ -8,44 +8,31 @@ import { GambaProvider } from "gamba-react-v2";
 import { PublicKey } from "@solana/web3.js";
 import "@solana/wallet-adapter-react-ui/styles.css";
 
-// Fix: Cast GambaProvider to any to suppress TypeScript prop errors
 const GambaProviderAny = GambaProvider as any;
 
 interface Props {
   children: React.ReactNode;
-  creator: string;
+  creator: string; // This is YOUR wallet address
 }
 
 export default function ClientProviders({ children, creator }: Props) {
-  const network = WalletAdapterNetwork.Mainnet;
+  // Use Helius for reliable performance (Production RPC)
+  const endpoint = useMemo(() => "https://mainnet.helius-rpc.com/?api-key=4d79e503-d315-4dcf-89a5-e07d67543e3b", []);
   
-  // Use a reliable RPC endpoint
-  const endpoint = useMemo(
-    () => "https://mainnet.helius-rpc.com/?api-key=4d79e503-d315-4dcf-89a5-e07d67543e3b",
-    []
-  );
+  // Empty wallets array enables auto-detection for Phantom/Solflare
+  const wallets = useMemo(() => [], []);
 
-  // FIX: Leave this array EMPTY to allow auto-detection of Phantom/Solflare
-  const wallets = useMemo(() => [], [network]);
-
-  // IMPROVEMENT: Validate the creator address to prevent '_bn' crashes
+  // Safety check to prevent crashes
   const isValidCreator = useMemo(() => {
     try {
       new PublicKey(creator);
       return true;
     } catch (e) {
-      console.error("Invalid Creator Address provided:", creator);
       return false;
     }
   }, [creator]);
 
-  if (!isValidCreator) {
-    return (
-      <div className="flex items-center justify-center min-h-screen text-red-500 font-bold bg-black">
-        CRITICAL ERROR: Invalid Creator Address. Please check app/providers.tsx
-      </div>
-    );
-  }
+  if (!isValidCreator) return <div className="text-red-500 p-10">Invalid Creator Address</div>;
 
   return (
     <ConnectionProvider endpoint={endpoint}>
@@ -53,9 +40,10 @@ export default function ClientProviders({ children, creator }: Props) {
         <WalletModalProvider>
           <GambaProviderAny
             creator={creator} 
+            // 💰 REVENUE CONFIGURATION 💰
             fees={{
-              creator: 0.05,
-              jackpot: 0.01,
+              creator: 0.05, // You earn 5% of every bet
+              jackpot: 0.01, // 1% goes to the Gamba Jackpot (optional)
             }}
           >
             {children}
