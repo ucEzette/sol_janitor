@@ -5,6 +5,7 @@ import { ConnectionProvider, WalletProvider } from "@solana/wallet-adapter-react
 import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import { GambaProvider } from "gamba-react-v2";
+import { PublicKey } from "@solana/web3.js";
 import "@solana/wallet-adapter-react-ui/styles.css";
 
 // Fix: Cast GambaProvider to any to suppress TypeScript prop errors
@@ -24,10 +25,27 @@ export default function ClientProviders({ children, creator }: Props) {
     []
   );
 
-  // FIX: Leave this array EMPTY. 
-  // Modern wallets (Phantom, Solflare) are auto-detected by the "Standard Wallet" protocol.
-  // Adding them manually causes the "Registered as Standard Wallet" warning in your logs.
+  // FIX: Leave this array EMPTY to allow auto-detection of Phantom/Solflare
   const wallets = useMemo(() => [], [network]);
+
+  // IMPROVEMENT: Validate the creator address to prevent '_bn' crashes
+  const isValidCreator = useMemo(() => {
+    try {
+      new PublicKey(creator);
+      return true;
+    } catch (e) {
+      console.error("Invalid Creator Address provided:", creator);
+      return false;
+    }
+  }, [creator]);
+
+  if (!isValidCreator) {
+    return (
+      <div className="flex items-center justify-center min-h-screen text-red-500 font-bold bg-black">
+        CRITICAL ERROR: Invalid Creator Address. Please check app/providers.tsx
+      </div>
+    );
+  }
 
   return (
     <ConnectionProvider endpoint={endpoint}>
