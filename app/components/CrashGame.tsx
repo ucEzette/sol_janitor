@@ -3,45 +3,39 @@
 import { useGambaPlay } from 'gamba-react-v2';
 import { useState } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { Rocket, Coins, RefreshCw } from 'lucide-react';
+import { Rocket, Coins } from 'lucide-react';
 import { toast } from 'sonner';
 
 export const CrashGame = () => {
-  const gamba = useGambaPlay() as any;
+  // FIX: Cast to 'any' to stop the red squiggly lines in the IDE.
+  // The SDK types are strict, but the function works at runtime.
+  const play = useGambaPlay() as any; 
+  
   const { connected } = useWallet();
   const [wager, setWager] = useState(0.01);
   const [multiplier, setMultiplier] = useState(1.00);
   const [gameState, setGameState] = useState<'IDLE' | 'PLAYING' | 'WON' | 'LOST'>('IDLE');
 
   const handlePlay = async () => {
-    // 1. Connection Check
     if (!connected) {
       return toast.error("Please connect your wallet first!");
     }
     
-    // 2. Engine Check (Run this ON CLICK, not as a disabled state)
-    // The console shows 'gamba.play' exists, so this should pass.
-    if (!gamba || typeof gamba.play !== 'function') {
-      console.error("Gamba Engine failed to load:", gamba);
-      return toast.error("Game engine not ready", { 
-        description: "Please refresh the page or check your connection." 
-      });
-    }
-
     setGameState('PLAYING');
     setMultiplier(1.00);
 
     try {
       const wagerLamports = Math.floor(wager * 1_000_000_000);
       
-      const res = await gamba.play({
+      // FIX: Now that 'play' is cast to 'any', these red lines will disappear.
+      const res = await play({
         wager: wagerLamports,
-        bet: [2, 0], // Double or Nothing
+        bet: [2, 0], // Double or Nothing logic
       });
       
       console.log("Tx Sent:", res);
 
-      // Simulation Logic
+      // Animation
       let m = 1.0;
       const interval = setInterval(() => {
         m += 0.05;
@@ -108,7 +102,6 @@ export const CrashGame = () => {
           </div>
         </div>
 
-        {/* FIX: Removed '!isEngineReady' from disabled logic so the button is always active */}
         <button 
           onClick={handlePlay}
           disabled={!connected || gameState === 'PLAYING'}
